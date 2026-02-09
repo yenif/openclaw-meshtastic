@@ -1,0 +1,31 @@
+{
+  "name": "openclaw-meshtastic",
+  "version": "0.1.0",
+  "description": "Meshtastic mesh radio channel plugin for OpenClaw",
+  "type": "module",
+  "dependencies": {
+    "eventsource": "^2.0.2"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.1.26"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "meshtastic",
+      "label": "Meshtastic",
+      "selectionLabel": "Meshtastic (LoRa mesh)",
+      "detailLabel": "Meshtastic",
+      "blurb": "LoRa mesh radio network via Meshtastic Python bridge.",
+      "aliases": ["mesh"],
+      "order": 80
+    },
+    "install": {
+      "npmSpec": "openclaw-meshtastic",
+      "localPath": "extensions/meshtastic",
+      "defaultChoice": "local"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meshtastic-bridge
+  labels:
+    app: meshtastic-bridge
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # Serial device can't be shared between pods
+  selector:
+    matchLabels:
+      app: meshtastic-bridge
+  template:
+    metadata:
+      labels:
+        app: meshtastic-bridge
+    spec:
+      containers:
+        - name: bridge
+          # Build and push to your own registry, or use pre-built:
+          image: ghcr.io/yenif/openclaw-meshtastic-bridge:latest
+          command: ["python3", "/app/server.py"]
+          env:
+            - name: SERIAL_PORT
+              value: "/dev/ttyUSB0"
+          ports:
+            - containerPort: 5000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            privileged: true  # Required for /dev/ttyUSB0 access
+          volumeMounts:
+            - name: usb
+              mountPath: /dev/ttyUSB0
+      volumes:
+        - name: usb
+          hostPath:
+            path: /dev/ttyUSB0
+            type: CharDevice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meshtastic-bridge
+  labels:
+    app: meshtastic-bridge
+spec:
+  selector:
+    app: meshtastic-bridge
+  ports:
+    - port: 5000
+      targetPort: 5000

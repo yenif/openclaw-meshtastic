@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.js
+*.js.map
+*.d.ts
+!plugin/src/**
+__pycache__/
+*.pyc
+.env
