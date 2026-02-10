@@ -170,6 +170,7 @@ export async function startMeshtasticMonitor(
         accountId: account.accountId,
         peer: { kind: isDirect ? "direct" : "group", id: peerId },
       });
+      runtime.log?.(`[${account.accountId}] Route: agentId=${route.agentId}, sessionKey=${route.sessionKey}, matchedBy=${route.matchedBy}, isDirect=${isDirect}, peerId=${peerId}`);
 
       const storePath = core.channel.session.resolveStorePath(config.session?.store, {
         agentId: route.agentId,
@@ -306,12 +307,14 @@ async function deliverMeshtasticReply(params: {
   const chunkLimit = 230; // Meshtastic message size limit
   const chunks = core.channel.text.chunkText(payload.text, chunkLimit);
 
-  for (const chunk of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    // LoRa needs time between transmissions — wait 3s between chunks
+    if (i > 0) await new Promise((r) => setTimeout(r, 3000));
     try {
       await sendMeshtasticMessage({
         bridgeUrl: account.bridgeUrl,
         to: toNodeId,
-        text: chunk,
+        text: chunks[i],
         channelIndex,
       });
       statusSink?.({ lastOutboundAt: Date.now() });
